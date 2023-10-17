@@ -13,61 +13,57 @@ let number = null;
 let operator = null;
 let resetDisplay = false;
 
-inputBtns.forEach((btn) =>
-  btn.addEventListener('click', () => {
-    if (resetDisplay) {
-      display.textContent = '0';
-      resetDisplay = false;
-    }
+function onInputBtnClick(e) {
+  if (resetDisplay) {
+    display.textContent = '0';
+    resetDisplay = false;
+  }
 
-    let displayVal = display.textContent;
-    const btnVal = btn.textContent;
+  let displayVal = display.textContent;
+  const btnVal = e.type === 'click' ? e.target.textContent : e.key;
 
-    const maxInputLength = displayVal.includes('-')
-      ? MAX_INPUT_LENGTH + 1
-      : MAX_INPUT_LENGTH;
-    const maxDecimalLength = displayVal.includes('-')
-      ? MAX_DECIMAL_LENGTH + 1
-      : MAX_DECIMAL_LENGTH;
+  const maxInputLength = displayVal.includes('-')
+    ? MAX_INPUT_LENGTH + 1
+    : MAX_INPUT_LENGTH;
+  const maxDecimalLength = displayVal.includes('-')
+    ? MAX_DECIMAL_LENGTH + 1
+    : MAX_DECIMAL_LENGTH;
 
-    if (displayVal.length >= maxInputLength) return;
-    if (btnVal === '0' && displayVal === '0') return;
-    if (
-      btnVal === '.' &&
-      (displayVal.includes('.') || displayVal.length > maxDecimalLength)
-    ) {
-      return;
-    }
+  if (displayVal.length >= maxInputLength) return;
+  if (btnVal === '0' && displayVal === '0') return;
+  if (
+    btnVal === '.' &&
+    (displayVal.includes('.') || displayVal.length > maxDecimalLength)
+  ) {
+    return;
+  }
 
-    if (displayVal === '0' && btnVal !== '.') displayVal = '';
-    display.textContent = displayVal + btnVal;
-  })
-);
+  if (displayVal === '0' && btnVal !== '.') displayVal = '';
+  display.textContent = displayVal + btnVal;
+}
 
-operatorBtns.forEach((btn) =>
-  btn.addEventListener('click', () => {
-    if (number === null) {
-      number = +display.textContent;
-      operator = btn.textContent;
+function onOperatorBtnClick(e) {
+  if (number === null) {
+    number = +display.textContent;
+    operator = e.type === 'click' ? e.target.textContent : e.key;
+  } else {
+    const result = operate(number, +display.textContent, operator);
+
+    display.textContent = result;
+
+    if (result === 'ERROR') {
+      number = null;
+      operator = null;
     } else {
-      const result = operate(number, +display.textContent, operator);
-
-      display.textContent = result;
-
-      if (result === 'ERROR') {
-        number = null;
-        operator = null;
-      } else {
-        number = result;
-        operator = btn.textContent;
-      }
+      number = result;
+      operator = e.type === 'click' ? e.target.textContent : e.key;
     }
+  }
 
-    resetDisplay = true;
-  })
-);
+  resetDisplay = true;
+}
 
-operateBtn.addEventListener('click', () => {
+function onOperateBtnClick() {
   if (!operator) return;
 
   const result = operate(number, +display.textContent, operator);
@@ -76,9 +72,9 @@ operateBtn.addEventListener('click', () => {
   number = null;
   operator = null;
   resetDisplay = true;
-});
+}
 
-signBtn.addEventListener('click', () => {
+function onSignBtnClick() {
   const displayVal = display.textContent;
 
   if (displayVal === '0') return;
@@ -88,19 +84,37 @@ signBtn.addEventListener('click', () => {
   } else {
     display.textContent = '-' + displayVal;
   }
-});
+}
 
-backspaceBtn.addEventListener('click', () => {
+function onBackspaceBtnClick() {
   if (display.textContent.length > 1) {
-    display.textContent = display.textContent.slice(-1);
+    display.textContent = display.textContent.slice(0, -1);
   } else display.textContent = '0';
-});
+}
 
-resetBtn.addEventListener('click', () => {
+function onResetBtnClick() {
   display.textContent = '0';
   number = null;
   operator = null;
   resetDisplay = false;
+}
+
+inputBtns.forEach((btn) => btn.addEventListener('click', onInputBtnClick));
+operatorBtns.forEach((btn) => btn.addEventListener('click', onOperatorBtnClick));
+operateBtn.addEventListener('click', onOperateBtnClick);
+signBtn.addEventListener('click', onSignBtnClick);
+backspaceBtn.addEventListener('click', onBackspaceBtnClick);
+resetBtn.addEventListener('click', onResetBtnClick);
+
+document.addEventListener('keydown', (e) => {
+  e.preventDefault();
+
+  if (/[0-9\.]/.test(e.key)) onInputBtnClick(e);
+  if (/[\/\*\+\-]/.test(e.key)) onOperatorBtnClick(e);
+  if (/(Enter|\=)/.test(e.key)) onOperateBtnClick();
+  if (/(Tab|(^s$))/i.test(e.key)) onSignBtnClick();
+  if (/(Backspace|Delete|(^b$))/i.test(e.key)) onBackspaceBtnClick();
+  if (/(Escape|(^c$))/i.test(e.key)) onResetBtnClick();
 });
 
 function operate(x, y, operator) {
