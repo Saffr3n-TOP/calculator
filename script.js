@@ -1,8 +1,12 @@
 const display = document.querySelector('.display');
+const resetBtn = document.querySelector('.reset');
 const signBtn = document.querySelector('.sign');
 const inputBtns = document.querySelectorAll('.input');
 const operatorBtns = document.querySelectorAll('.operator');
 const operateBtn = document.querySelector('.operate');
+
+const MAX_INPUT_LENGTH = 15;
+const MAX_DECIMAL_LENGTH = MAX_INPUT_LENGTH - 2;
 
 let number = null;
 let operator = null;
@@ -17,13 +21,19 @@ inputBtns.forEach((btn) =>
 
     let displayVal = display.textContent;
     const btnVal = btn.textContent;
-    const maxChars = displayVal.includes('-') ? 16 : 15;
 
-    if (displayVal.length >= maxChars) return;
+    const maxInputLength = displayVal.includes('-')
+      ? MAX_INPUT_LENGTH + 1
+      : MAX_INPUT_LENGTH;
+    const maxDecimalLength = displayVal.includes('-')
+      ? MAX_DECIMAL_LENGTH + 1
+      : MAX_DECIMAL_LENGTH;
+
+    if (displayVal.length >= maxInputLength) return;
     if (btnVal === '0' && displayVal === '0') return;
     if (
       btnVal === '.' &&
-      (displayVal.includes('.') || displayVal.length >= maxChars - 1)
+      (displayVal.includes('.') || displayVal.length > maxDecimalLength)
     ) {
       return;
     }
@@ -40,6 +50,7 @@ operatorBtns.forEach((btn) =>
       operator = btn.textContent;
     } else {
       const result = operate(number, +display.textContent, operator);
+
       display.textContent = result;
 
       if (result === 'ERROR') {
@@ -59,8 +70,8 @@ operateBtn.addEventListener('click', () => {
   if (!operator) return;
 
   const result = operate(number, +display.textContent, operator);
-  display.textContent = result;
 
+  display.textContent = result;
   number = null;
   operator = null;
   resetDisplay = true;
@@ -70,11 +81,19 @@ signBtn.addEventListener('click', () => {
   const displayVal = display.textContent;
 
   if (displayVal === '0') return;
+
   if (displayVal.includes('-')) {
     display.textContent = displayVal.slice(1);
   } else {
     display.textContent = '-' + displayVal;
   }
+});
+
+resetBtn.addEventListener('click', () => {
+  display.textContent = '0';
+  number = null;
+  operator = null;
+  resetDisplay = false;
 });
 
 function operate(x, y, operator) {
@@ -102,8 +121,14 @@ function divide(x, y) {
 
 function normalizeResult(result) {
   const unsignedInt = Math.floor(Math.abs(result));
-  const nums = unsignedInt.toString().length;
+  const intLength = unsignedInt.toString().length;
 
-  if (nums > 15) return 'ERROR';
-  return +result.toFixed(14 - (nums < 13 ? nums : 14));
+  if (intLength > MAX_INPUT_LENGTH || isNaN(result) || result === Infinity) {
+    return 'ERROR';
+  }
+
+  let maxDecimalLength = MAX_DECIMAL_LENGTH - (intLength - 1);
+  if (maxDecimalLength < 0) maxDecimalLength = 0;
+
+  return +result.toFixed(maxDecimalLength);
 }
