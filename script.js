@@ -1,5 +1,6 @@
 const display = document.querySelector('.display');
 const resetBtn = document.querySelector('.reset');
+const backspaceBtn = document.querySelector('.backspace');
 const signBtn = document.querySelector('.sign');
 const inputBtns = document.querySelectorAll('.input');
 const operatorBtns = document.querySelectorAll('.operator');
@@ -87,6 +88,12 @@ signBtn.addEventListener('click', () => {
   } else {
     display.textContent = '-' + displayVal;
   }
+});
+
+backspaceBtn.addEventListener('click', () => {
+  if (display.textContent.length > 1) {
+    display.textContent = display.textContent.slice(-1);
+  } else display.textContent = '0';
 });
 
 resetBtn.addEventListener('click', () => {

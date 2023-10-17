@@ -26,11 +26,6 @@ button {
   line-height: inherit;
 }
 
-button:disabled {
-  background: #eeeeee77;
-  color: #00000077;
-}
-
 button:hover:not(:disabled) {
   background: #ddd;
 }
